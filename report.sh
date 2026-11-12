@@ -129,8 +129,71 @@ cat > "$TEMP_FILE" <<EOF
     </section>
 
     <section>
-        <h2>Documentation</h2>
-        <p>TODO: documentation is added in a later step.</p>
+        <h2>Commands used</h2>
+        <ul>
+            <li><code>date '+%Y-%m-%d %H:%M:%S %Z (UTC%z)'</code>:
+                prints the current date, time and time zone.</li>
+            <li><code>uptime -p</code>:
+                shows how long the server has been running.</li>
+            <li><code>df -P / | awk 'NR == 2 {print &#36;5}' | tr -d '%'</code>:
+                a pipe. <code>df</code> lists disk usage, <code>awk</code>
+                picks the usage column from row 2, and <code>tr</code>
+                removes the % sign so the number can be compared.</li>
+            <li><code>free -m | awk '/^Mem:/ {print &#36;2}'</code>:
+                shows memory in MiB, and <code>awk</code> picks total RAM
+                (column 7 gives available RAM).</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>How it works</h2>
+        <p>The Bash script <code>report.sh</code> runs the commands above and
+           stores each result in a variable using command substitution,
+           for example <code>UPTIME_TEXT=&#36;(uptime -p)</code>.
+           It then writes the HTML page to a temporary file and moves it to
+           <code>/var/www/html/viikko3/index.html</code>, so Nginx never
+           serves a half-written page.</p>
+        <p>The function <code>get_disk_status</code> takes the usage percent
+           and uses an if statement: at 80 or above it returns WARNING,
+           otherwise OK.</p>
+        <p>The schedule uses <strong>cron</strong>. The line
+           <code>* * * * * /home/ubuntu/viikko3-app/report.sh</code>
+           runs the script every minute. The cron service is enabled with
+           systemd, so it starts again after a reboot.</p>
+    </section>
+
+    <section>
+        <h2>Test results</h2>
+        <p>Syntax check <code>bash -n report.sh</code>: passed, no errors.
+           The script was also run manually and the report opened in a browser.</p>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr><th scope="col">Test input</th>
+                        <th scope="col">Expected</th>
+                        <th scope="col">Actual</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>50%</td><td>OK</td><td>OK</td></tr>
+                    <tr><td>80%</td><td>WARNING</td><td>WARNING</td></tr>
+                    <tr><td>90%</td><td>WARNING</td><td>WARNING</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <p>Test values were given with <code>TEST_PERCENT=90 ./report.sh</code>.
+           Afterwards the script was run normally and the real usage returned.</p>
+        <p>Automatic updates: cron generated reports at 12:22:01 and
+           12:23:01 UTC, exactly one minute apart.</p>
+        <p>Reboot test: REBOOT_PLACEHOLDER</p>
+    </section>
+
+    <section>
+        <h2>A problem I solved</h2>
+        <p>While testing I mistyped the variable name as
+           <code>EST_PERCENT=90</code>. The script ignored it and showed the
+           real disk usage (5%, OK) instead of the 90% test. I noticed the
+           output was wrong, fixed the typo and repeated the test.
+           I learned to always check that test output matches the input.</p>
     </section>
 
     <footer>
