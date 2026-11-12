@@ -184,7 +184,7 @@ cat > "$TEMP_FILE" <<EOF
            Afterwards the script was run normally and the real usage returned.</p>
         <p>Automatic updates: cron generated reports at 12:22:01 and
            12:23:01 UTC, exactly one minute apart.</p>
-        <p>Reboot test: REBOOT_PLACEHOLDER</p>
+        <p>Reboot test: I rebooted the virtual machine with <code>sudo reboot</code>. Before the reboot the report was generated at 12:38:01 UTC and the uptime was 4 days 19 hours. After the reboot the website opened again without any manual steps. The uptime was 1 minute and cron generated a new report at 12:41:01 UTC. The report kept updating every minute, and the uptime kept growing. The Week 1 and Week 2 pages also opened normally.</p>
     </section>
 
     <section>
